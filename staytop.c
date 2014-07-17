@@ -27,12 +27,8 @@ int main (int argc,
   gtk_widget_show_all (window);
   g_signal_connect (G_OBJECT (window), "destroy",
 		    G_CALLBACK (destroy), NULL);
-  g_signal_connect (G_OBJECT (button_set), "drag_begin",
-		    G_CALLBACK (drag_begin), NULL);
   g_signal_connect (G_OBJECT (button_set), "drag_end",
 		    G_CALLBACK(drag_end), NULL);
-  g_signal_connect (G_OBJECT (button_unset), "drag_begin",
-		    G_CALLBACK (drag_begin), NULL);
   g_signal_connect (G_OBJECT (button_unset), "drag_end",
 		    G_CALLBACK(drag_end), NULL);
   gtk_main();
@@ -42,16 +38,21 @@ static void destroy (GtkWidget *window, gpointer data)
 {
   gtk_main_quit ();
 }
-static void drag_begin (GtkWidget *widget, GdkDragContext *dc, gpointer data)
-{
-  g_print ("hello\n");
-}
 static void drag_end (GtkWidget *widget, GdkDragContext *dc, gint x, gint y, guint t, gpointer data)
 {
   const char *label = gtk_button_get_label(GTK_BUTTON(widget));
   char set[] = "set";
   g_print("%s dropped\n",label);
-  label==set?set_state():unset_state();
+  if(!strcmp(label, set))
+    {
+      printf("Setting state\n");
+      set_state();
+    }
+  else
+    {
+      printf("Unsetting state\n");
+      unset_state();
+    }
 
 
 }

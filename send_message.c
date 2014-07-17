@@ -4,18 +4,20 @@
 #include <assert.h> 
 #include <unistd.h>
 #include <glib.h>
+#include <string.h>
 #include "send_message.h"
 Display *disp;
 
 static int change_state(Display *disp, unsigned long data0, char *data1)
 {
     XEvent event;
+    memset(&event, 0, sizeof(event));
     Window root_return, child_return;
     int root_x, root_y, win_x, win_y;
     unsigned int mask_return;
     XQueryPointer(disp, DefaultRootWindow(disp), &root_return, &child_return
 		  , &root_x, &root_y, &win_x, &win_y, &mask_return);
-    g_print("%ld\n",child_return);
+    g_print("child window: %ld\n",child_return);
     g_print("x,y coord relative to root win: %d %d\n",root_x,root_y);
     long mask = SubstructureRedirectMask | SubstructureNotifyMask;
     event.xclient.type = ClientMessage;
@@ -25,16 +27,17 @@ static int change_state(Display *disp, unsigned long data0, char *data1)
     event.xclient.window = child_return;
     event.xclient.format = 32;
     event.xclient.data.l[0] = data0;/* remove:0 add:1 toogle:2 */
-    event.xclient.data.l[1] = XInternAtom(disp, data1, 1);
-
+    event.xclient.data.l[1] = XInternAtom(disp, data1, False);
     if (XSendEvent(disp, DefaultRootWindow(disp), False, mask, &event)) 
     {
       g_print("xsend success\n");
+      XFlush (disp);
       return 0;
     }
     else 
     {
       g_print("xsend failed\n");
+      XFlush (disp);
       return 1;
     }
 }
