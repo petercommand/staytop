@@ -8,7 +8,7 @@
 #include "send_message.h"
 Display *disp;
 
-static int change_state(Display *disp, unsigned long data0, char *data1)
+static int change_state(unsigned long data0, char *data1)
 {
     XEvent event;
     memset(&event, 0, sizeof(event));
@@ -28,6 +28,14 @@ static int change_state(Display *disp, unsigned long data0, char *data1)
     event.xclient.format = 32;
     event.xclient.data.l[0] = data0;/* remove:0 add:1 toogle:2 */
     event.xclient.data.l[1] = XInternAtom(disp, data1, False);
+    if(data0 == 1)
+    {
+      XSelectInput(disp, child_return, VisibilityChangeMask);
+    }
+    else
+    {
+      XSelectInput(disp, child_return, 0);
+    }
     if (XSendEvent(disp, DefaultRootWindow(disp), False, mask, &event)) 
     {
       g_print("xsend success\n");
@@ -45,11 +53,7 @@ static int change_state(Display *disp, unsigned long data0, char *data1)
 
 int set_state()
 {
-  if (!(disp = XOpenDisplay(NULL)))
-    {
-      g_print("Cannot open display");
-    }
-  if(change_state(disp,1,"_NET_WM_STATE_ABOVE") == 0)
+  if(change_state(1,"_NET_WM_STATE_ABOVE") == 0)
     {
       return 0;
     }
@@ -62,11 +66,7 @@ int set_state()
 }
 int unset_state()
 {
-  if (!(disp = XOpenDisplay(NULL)))
-    {
-      g_print("Cannot open display");
-    }
-  if(change_state(disp,0,"_NET_WM_STATE_ABOVE") == 0)
+  if(change_state(0,"_NET_WM_STATE_ABOVE") == 0)
     {
       return 0;
     }
@@ -75,4 +75,23 @@ int unset_state()
       g_print("set state failed");
       return 1;
     }
+}
+
+void raise_window_loop(){
+  XEvent ev;
+  while(1)
+    {
+      XNextEvent(disp, &ev);
+      if(ev.type == VisibilityNotify)
+	{
+	  g_print("raising window: %ld", ev.xvisibility.window);
+	  if(!XRaiseWindow(disp, ev.xvisibility.window))
+	    {
+	      g_print("XRaiseWindow error?\n");
+	      
+	    }
+
+	}
+    }
+
 }

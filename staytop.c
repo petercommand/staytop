@@ -1,3 +1,6 @@
+#include <X11/Xlib.h> 
+#include <X11/Xatom.h>
+#include <X11/Xmu/WinUtil.h>
 #include <gtk/gtk.h>
 #include <string.h>
 #include <stdio.h>
@@ -5,6 +8,7 @@
 #include "send_message.h"
 #include "staytop.h"
 GtkWidget *window;
+extern Display *disp;
 int main (int argc,
 	  char *argv[])
 {
@@ -31,6 +35,18 @@ int main (int argc,
 		    G_CALLBACK(drag_end), NULL);
   g_signal_connect (G_OBJECT (button_unset), "drag_end",
 		    G_CALLBACK(drag_end), NULL);
+  // X11 init
+  
+  //XInitThreads();
+  if (!(disp = XOpenDisplay(NULL)))
+    {
+      g_print("Cannot open display");
+    }
+  int pid = fork();
+  if (pid == 0)
+  {
+    raise_window_loop();
+  }
   gtk_main();
   return 0;
 }
